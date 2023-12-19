@@ -27,7 +27,7 @@ from models.model import *
 # from models.callbacks import *
 from data.data_module import *
 #from models.loss import *
-
+os.environ["TZ"] = "Asia/Seoul"
 
 def main(config:Dict):
     #seed 고정
