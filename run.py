@@ -207,7 +207,7 @@ def main(config:Dict):
             output = pd.read_csv("/data/ephemeral/home/sample_submission.csv")
             output["target"] = predictions
             output_file_name = '_'.join(select_version_path.stem.split("_")[:-2]) + f"_{datetime.today().strftime('%Y%m%d_%H%M%S')}.csv" # add prediction time
-            output.to_csv(output_path / output_file_name, index=False)
+        output.to_csv(output_path / output_file_name, index=False)
 
 if __name__ == '__main__':
     config = read_json('/data/ephemeral/home/github_codestudy25/level_1_sts/config/config.json')
