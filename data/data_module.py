@@ -52,9 +52,9 @@ class Dataloader(pl.LightningDataModule):
         # secial token 를 추가할때마다 model.py 의 self.plm.resize_token_embeddings(self.plm.get_input_embeddings().num_embeddings + {5}) 를 수정해줘야함
         special_tokens_dict = {
             "additional_special_tokens": [
-                "[petition]",
-                "[nsmc]",
-                "[slack]",
+                #"[petition]",
+                #"[nsmc]",
+                #"[slack]",
                 "[sampled]",
                 "[rtt]",
             ]
@@ -71,11 +71,12 @@ class Dataloader(pl.LightningDataModule):
         data = []
         for idx, item in tqdm(dataframe.iterrows(), desc='tokenizing', total=len(dataframe)):
             # source 토큰을 문장의 어디에 붙일 것인가? 맨 앞X뒤O에 붙입니다.
-            src_tokens = [f"[{src}]" for src in item['source'].split("-")]
+            src_1, src_2 = item['source'].split("-")
+            #src_tokens = [f"[{src_2}]" for _,src_2 in item['source'].split("-")]
             # 두 입력 문장을 [SEP] 토큰으로 이어붙여서 전처리합니다.
-            sentence_1 = src_tokens[0] + item[self.text_columns[0]]
-            sentence_2 = src_tokens[1] + item[self.text_columns[1]]
-            text = sentence_1 + '[SEP]' + sentence_2
+            #sentence_1 = src_tokens[0] + item[self.text_columns[0]]
+            #sentence_2 = src_tokens[1] + item[self.text_columns[1]]
+            text = src_2 + item[self.text_columns[0]] + '[SEP]' + item[self.text_columns[1]]
             # text = '[SEP]'.join([item[text_column] for text_column in self.text_columns]) + ''.join(src_tokens)
             outputs = self.tokenizer(text, add_special_tokens=True, padding='max_length', truncation=True)
             for key in outputs:
@@ -105,6 +106,15 @@ class Dataloader(pl.LightningDataModule):
             train_data = pd.read_csv(self.train_path)
             val_data = pd.read_csv(self.dev_path)
 
+            #sentence_1, sentence_2 swap
+            #train_data_2 = train_data[['id', 'source', 'sentence_2', 'sentence_1', 'label', 'binary-label']]
+            #train_data_2.columns = ['id', 'source', 'sentence_1', 'sentence_2', 'label', 'binary-label']
+            #train_data_swaped = pd.concat([train_data,train_data_2])
+
+            #val_data_2 = val_data[['id', 'source', 'sentence_2', 'sentence_1', 'label', 'binary-label']]
+            #val_data_2.columns = ['id', 'source', 'sentence_1', 'sentence_2', 'label', 'binary-label']
+            #val_data_swaped = pd.concat([val_data,val_data_2])
+            
             # 학습데이터 준비
             train_inputs, train_targets = self.preprocessing(train_data)
 
@@ -166,9 +176,9 @@ class KFoldDataloader(pl.LightningDataModule):
         # source에 해당하는 special token
         special_tokens_dict = {
             "additional_special_tokens": [
-                "[petition]",
-                "[nsmc]",
-                "[slack]",
+                #"[petition]",
+                #"[nsmc]",
+                #"[slack]",
                 "[sampled]",
                 "[rtt]",
             ]
@@ -183,14 +193,18 @@ class KFoldDataloader(pl.LightningDataModule):
     def tokenizing(self, dataframe):
         data = []
         for idx, item in tqdm(dataframe.iterrows(), desc='tokenizing', total=len(dataframe)):
-            # source 토큰을 문장의 어디에 붙일 것인가? 맨 앞에 붙입니다.
-            src_tokens = [f"[{src}]" for src in item['source'].split("-")]
+            # source 토큰을 문장의 어디에 붙일 것인가? 맨 앞X뒤O에 붙입니다.
+            src_1, src_2 = item['source'].split("-")
+            #src_tokens = [f"[{src_2}]" for _,src_2 in item['source'].split("-")]
             # 두 입력 문장을 [SEP] 토큰으로 이어붙여서 전처리합니다.
-            text = ''.join(src_tokens) + '[SEP]'.join([item[text_column] for text_column in self.text_columns])
+            #sentence_1 = src_tokens[0] + item[self.text_columns[0]]
+            #sentence_2 = src_tokens[1] + item[self.text_columns[1]]
+            text = src_2 + item[self.text_columns[0]] + '[SEP]' + item[self.text_columns[1]]
+            # text = '[SEP]'.join([item[text_column] for text_column in self.text_columns]) + ''.join(src_tokens)
             outputs = self.tokenizer(text, add_special_tokens=True, padding='max_length', truncation=True)
             for key in outputs:
                 outputs[key] = torch.tensor(outputs[key], dtype=torch.long)
-
+                
             data.append(outputs)
         return data
 
@@ -215,6 +229,15 @@ class KFoldDataloader(pl.LightningDataModule):
             train_data = pd.read_csv(self.train_path)
             val_data = pd.read_csv(self.dev_path)
 
+            #sentence_1, sentence_2 swap
+            #train_data_2 = train_data[['id', 'source', 'sentence_2', 'sentence_1', 'label', 'binary-label']]
+            #train_data_2.columns = ['id', 'source', 'sentence_1', 'sentence_2', 'label', 'binary-label']
+            #train_data_swaped = pd.concat([train_data,train_data_2])
+
+            #val_data_2 = val_data[['id', 'source', 'sentence_2', 'sentence_1', 'label', 'binary-label']]
+            #val_data_2.columns = ['id', 'source', 'sentence_1', 'sentence_2', 'label', 'binary-label']
+            #val_data_swaped = pd.concat([val_data,val_data_2])
+            
             total_data = pd.concat([train_data, val_data], axis=0).reset_index(drop=True)
             total_inputs, total_targets = self.preprocessing(total_data)
             total_dataset = Dataset(total_inputs, total_targets)

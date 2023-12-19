@@ -1,15 +1,16 @@
 {
     "seed": 1219,
-    "inference": false,
+    "inference": true,
     "best": false,
-    "test": false,
+    "test": true,
+    "ensemble" : true,
     "wandb_project_name": "nlp-project1",
     "wandb_username": "codestudy25",
     "model_name": "snunlp/KR-ELECTRA-discriminator",
-    "model_detail": "v",
+    "model_detail": "no_swap",
     "resume": false,
     "batch_size": [32],
-    "max_epoch": 3,
+    "max_epoch": 15,
     "shuffle": true,
     "learning_rate": [2e-5],
     "kfold": 1,
@@ -20,5 +21,6 @@
     "train_path": "train.csv",
     "dev_path": "dev.csv",
     "test_path": "dev.csv",
-    "predict_path": "test.csv"
+    "predict_path": "test.csv",
+    "output_name" : "ensemble_1.csv"
 }
