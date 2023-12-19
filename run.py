@@ -17,7 +17,7 @@ import torchmetrics
 import pytorch_lightning as pl
 
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
-from pytorch_lightning.callbacks import ModelCheckPoint
+from pytorch_lightning.callbacks import ModelCheckpoint
 
 import wandb
 from pytorch_lightning.loggers import WandbLogger
@@ -26,7 +26,7 @@ from utils.utils import *
 from models.model import *
 # from models.callbacks import *
 from data.data_module import *
-from models.loss import *
+#from models.loss import *
 
 
 def main(config:Dict):
@@ -41,6 +41,9 @@ def main(config:Dict):
     # 실행 시 '--batch_size=64' 같은 인자를 입력하지 않으면 default 값이 기본으로 실행됩니다
     parser = argparse.ArgumentParser()
     parser.add_argument('--inference', default=config["inference"], action="store_true")
+    parser.add_argument('--best', default=config["best"], action="store_true") # https://stackoverflow.com/questions/44561722/why-in-argparse-a-true-is-always-true
+    parser.add_argument('--test', default=config["test"], action="store_true")
+    parser.add_argument('--resume', default=config["resume"], action="store_true")
     parser.add_argument('--shuffle', default=config["shuffle"], action="store_true")
     parser.add_argument('--wandb_project_name', default=config["wandb_project_name"], type=str)
     parser.add_argument('--wandb_username', default=config["wandb_username"], type=str)
@@ -51,6 +54,9 @@ def main(config:Dict):
     parser.add_argument('--learning_rate', default=config["learning_rate"], type=float)
     parser.add_argument('--kfold', default=config["kfold"], type=int)
     parser.add_argument('--data_dir', default=config["data_dir"])
+    parser.add_argument('--model_dir', default=config["model_dir"])
+    parser.add_argument('--test_output_dir', default=config["test_output_dir"])
+    parser.add_argument('--output_dir', default=config["output_dir"])
     parser.add_argument('--train_path', default=config["train_path"])
     parser.add_argument('--dev_path', default=config["dev_path"])
     parser.add_argument('--test_path', default=config["test_path"])
@@ -74,6 +80,7 @@ def main(config:Dict):
         
         for i, combination in enumerate(grids, start=1):
             batch_size, learning_rate = combination
+            max_epoch = args.max_epoch
             
             print(f"#{i}" + "="*80)
             print(f"model_name: {model_name}, model_detail: {model_detail}\nbatch_size: {batch_size}\nmax_epoch: {max_epoch}\nlearning_rate: {learning_rate}\n")
@@ -104,7 +111,7 @@ def main(config:Dict):
                     mode="max"
                 )
 
-            loss_fns = nn.SmoothL1Loss()
+            loss_fns = [nn.SmoothL1Loss()]
             
             model = Model(model_name, learning_rate, loss_fns)
             
@@ -197,13 +204,13 @@ def main(config:Dict):
             predictions = trainer.predict(model=model, datamodule=dataloader)
             predictions = list(round(val.item(), 1) for val in torch.cat(predictions)) # (# batches, batch_size * 1) -> (# batches * batch_size * 1)
             
-            output = pd.read_csv("./data/sample_submission.csv")
+            output = pd.read_csv("/data/ephemeral/home/sample_submission.csv")
             output["target"] = predictions
             output_file_name = '_'.join(select_version_path.stem.split("_")[:-2]) + f"_{datetime.today().strftime('%Y%m%d_%H%M%S')}.csv" # add prediction time
             output.to_csv(output_path / output_file_name, index=False)
 
 if __name__ == '__main__':
-    config = read_json('./config/config.json')
+    config = read_json('/data/ephemeral/home/github_codestudy25/level_1_sts/config/config.json')
     main(config=config)
         
             
