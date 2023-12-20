@@ -89,7 +89,7 @@ def main(config:Dict):
             print(f"#{i}" + "="*80)
             print(f"model_name: {model_name}, model_detail: {model_detail}\nbatch_size: {batch_size}\nmax_epoch: {max_epoch}\nlearning_rate: {learning_rate}\n")
             
-            latest_version, _ = get_latest_version(args.model_dir, model_name)
+            latest_version, _ = get_latest_version(args.model_dir, model_name, model_detail)
             
             # model_dir / model_provider / model_name + model_version + batch_size + max_epoch + learning_rate + current_epoch + current_step + eval_metric + YYYYMMDD + HHMMSS + .ckpt
             # ./saves/klue/roberta-small_v03_16_1_1e-05_000_00583_0.862_20231214_221830.ckpt 같은 형태로 저장됩니다
@@ -168,13 +168,14 @@ def main(config:Dict):
         print("Start inference...")
         
         model_name = args.model_name
+        model_detail = args.model_detail
         
         if args.best:
             print("Loading the best performance model...")
-            select_version, select_version_perf, select_version_path = get_version(args.model_dir, model_name, best=True)
+            select_version, select_version_perf, select_version_path = get_version(args.model_dir, model_name, model_detail, best=True)
         else:
             print("Loading latest trained model...")
-            select_version, select_version_perf, select_version_path = get_version(args.model_dir, model_name)
+            select_version, select_version_perf, select_version_path = get_version(args.model_dir, model_name, model_detail)
         batch_size = int(select_version_path.stem.split("_")[-8])
         
         print(f"#inference" + "=" * 80)

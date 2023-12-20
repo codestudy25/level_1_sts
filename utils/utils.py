@@ -19,43 +19,49 @@ def prefix_zero(n, total_length):
     return '0' * (total_length - len(str(n))) + str(n)
 
 
-def get_latest_version(model_dir, model_name):
+def get_latest_version(model_dir, model_name, model_detail):
     latest_version, latest_version_path = (-1, "")
     model_dir = Path(model_dir)
-    model_provider = model_name.split("/")[0] # "klue"/roberta-large
+    #model_provider = model_name.split("/")[0] # "klue"/roberta-large
     model_title = "-".join(model_name.split("/")[1].split()) # klue/"roberta-large"
     # print(model_title)
-    for child in model_dir.iterdir():
-        if child.is_dir() and child.name == model_provider:
-            model_files = list(child.glob(f"{model_title}_*.ckpt"))
-            # print(model_files)
-            if len(model_files) > 0:
-                model_versions = [(int(model_file.stem.split("_")[-9][-2:]), model_file) for model_file in model_files]
-                latest_version, latest_version_path = sorted(model_versions, key=lambda x: x[0], reverse=True)[0]
-                break
+    files = list(model_dir.glob('*.ckpt'))
+
+    model_files = []
+    for model_file in files:
+        if model_title in str(model_file) and model_detail in str(model_file):
+            model_files.append(model_file)
+    
+    if len(model_files) > 0:
+        model_versions = [(int(model_file.stem.split("_")[-9][-2:]), model_file) for model_file in model_files]
+        latest_version, latest_version_path = sorted(model_versions, key=lambda x: x[0], reverse=True)[0]
+        
     return latest_version, latest_version_path
 
 
-def get_version(model_dir, model_name, best=False):
-    version, version_path = (-1, "")
+def get_version(model_dir, model_name, model_detail, best=False):
+    version, version_perf, version_path = (-1, 0, "")
     model_dir = Path(model_dir)
-    model_provider = model_name.split("/")[0] # "klue"/roberta-large
+    #model_provider = model_name.split("/")[0] # "klue"/roberta-large
     model_title = "-".join(model_name.split("/")[1].split()) # klue/"roberta-large"
     # print(model_title)
-    for child in model_dir.iterdir():
-        if child.is_dir() and child.name == model_provider:
-            model_files = list(child.glob(f"{model_title}_*.ckpt"))
-            # print(model_files)
-            if len(model_files) > 0:
-                model_versions = [(int(model_file.stem.split("_")[-9][-2:]), float(model_file.stem.split("_")[-3]), model_file) for model_file in model_files]
-                if best:
-                    # the best performance version
-                    func = lambda x: x[1]
-                else: 
-                    # latest version
-                    func = lambda x: x[0]
-                version, version_perf, version_path = sorted(model_versions, key=func, reverse=True)[0]
-                break
+    files = list(model_dir.glob('*.ckpt'))
+
+    model_files = []
+    for model_file in files:
+        if model_title in str(model_file) and model_detail in str(model_file):
+            model_files.append(model_file)
+    
+    if len(model_files) > 0:
+        model_versions = [(int(model_file.stem.split("_")[-9][-2:]), float(model_file.stem.split("_")[-3]), model_file) for model_file in model_files]
+        if best:
+            # the best performance version
+            func = lambda x: x[1]
+        else: 
+            # latest version
+            func = lambda x: x[0]
+        version, version_perf, version_path = sorted(model_versions, key=func, reverse=True)[0]
+        
     return version, version_perf, version_path
 
 def plot_models(model_names: List[str], model_results: torch.Tensor, origin_path:Path, origin_target_name: str, error_gap: float = 0.5):
