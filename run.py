@@ -14,7 +14,7 @@ from tqdm.auto import tqdm
 
 import torch
 import torch.nn.functional as F
-import torchmetrics
+import torchmetrics    
 import pytorch_lightning as pl
 
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
@@ -100,8 +100,9 @@ def main(config:Dict):
 
             early_stop_custom_callback = EarlyStopping("val_pearson", patience=5, verbose=True, mode="max")
             
-            model_provider = model_name.split("/")[0] # "klue"/roberta-large
-            dirpath = Path(args.model_dir) / model_provider
+            #model_provider = model_name.split("/")[0] # "klue"/roberta-large
+            #dirpath = Path(args.model_dir) / model_provider
+            dirpath = Path(args.model_dir)
             dirpath.mkdir(parents=True, exist_ok=True)
 
             checkpoint_callback = ModelCheckpoint(
@@ -184,8 +185,9 @@ def main(config:Dict):
         model = Model.load_from_checkpoint(select_version_path)
         
         output_dir = Path(args.output_dir) if not args.test else Path(args.test_output_dir)
-        model_provider = model_name.split("/")[0] # "klue"/roberta-large
-        output_path = output_dir / model_provider
+        #model_provider = model_name.split("/")[0] # "klue"/roberta-large
+        #output_path = output_dir / model_provider
+        output_path = output_dir
         output_path.mkdir(parents=True, exist_ok=True)
         
         
