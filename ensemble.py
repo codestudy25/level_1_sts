@@ -8,7 +8,7 @@ from pathlib import Path
 class Ensemble():
     def __init__(self):
         self.output_dir_files = list(Path('/data/ephemeral/home/github_codestudy25/level_1_sts/to_ensemble_files').iterdir())
-        self.score_files = [file for file in Path('/data/ephemeral/home/github_codestudy25/level_1_sts/scoreboard.txt').read_text().split('\n') if file != '']
+        self.score_files = [file for file in Path('/data/ephemeral/home/github_codestudy25/to_ensemble_scoreboard/to_ensemble_scoreboard.txt').read_text().split('\n') if file != '']
         self.score_dict={file.split(':')[0].strip():file.split(':')[1].strip() for file in self.score_files} # 파일명:점수
 
     def voting(self):
@@ -18,7 +18,15 @@ class Ensemble():
         scores = torch.nn.functional.softmax(scores,dim=-1)
 
         #outputs = [pd.read_csv(file)['target'] for file in self.output_dir_files]
-        outputs = [pd.read_csv(file)['label'] for file in self.output_dir_files]
+        outputs = []
+        for file in self.output_dir_files:
+            df = pd.read_csv(file)
+            if 'target' in df.columns:
+                outputs.append(df['target'])
+            elif 'label' in df.columns:
+                outputs.append(df['label'])
+        
+        #outputs = [pd.read_csv(file)['label'] for file in self.output_dir_files]
         
         ensemble_output = [outputs[i]*scores[i].item() for i in range(num_files)] # 각 파일의 target에 softmax를 취한 score를 곱해줌, ,item() : Tensor를 float로 변환
 
@@ -34,7 +42,7 @@ class Ensemble():
 
         output = pd.read_csv('/data/ephemeral/home/sample_submission.csv')
         output['target'] = ensemble_output
-        output.to_csv('/data/ephemeral/home/github_codestudy25/level_1_sts/ensemble_outputs/ensemble_output.csv', index=False)
+        output.to_csv('/data/ephemeral/home/github_codestudy25/level_1_sts/ensemble_outputs/last_ensemble_output_7.csv', index=False)
 
 if __name__ == '__main__':
     ensemble = Ensemble()
